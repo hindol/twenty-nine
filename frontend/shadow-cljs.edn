@@ -1,0 +1,11 @@
+{:builds       {:app {:asset-path "/js"
+                      :modules    {:app {:init-fn com.github.hindol.twenty-nine/init}}
+                      :output-dir "public/js"
+                      :target     :browser
+                      :http-root  "public"
+                      :release    {:output-dir "../docs/js"}}}
+ :dependencies [[cljs-http "0.1.46"]
+                [reagent "0.10.0"]
+                [re-frame "0.12.0"]]
+ :dev-http     {3000 "public"}
+ :source-paths ["src"]}

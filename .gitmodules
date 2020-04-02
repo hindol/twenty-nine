@@ -1,0 +1,3 @@
+[submodule "frontend/public/images/cards"]
+	path = frontend/public/images/cards
+	url = https://github.com/digitaldesignlabs/responsive-playing-cards.git

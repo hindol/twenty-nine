@@ -3,10 +3,16 @@
    [clojure.pprint :as pp]
    [re-frame.core :as rf]))
 
+; Debug only
 (rf/reg-sub
  :app-db
  (fn [db _]
    db))
+
+(rf/reg-sub
+ :players
+ (fn [db _]
+   (:players db)))
 
 (rf/reg-sub
  :rounds
@@ -60,4 +66,4 @@
  :<- [:turns]
  :<- [:plays]
  (fn [[turns plays] _]
-   (turns (count plays))))
+   (get turns (count plays) :end-trick)))

@@ -6,6 +6,7 @@
                       :release    {:output-dir "../docs/js"}}}
  :dependencies [[cljs-http "0.1.46"]
                 [reagent "0.10.0"]
-                [re-frame "0.12.0"]]
+                [re-frame "0.12.0"]
+                [re-frame-utils "0.1.0"]]
  :dev-http     {3000 "public"}
  :source-paths ["src"]}

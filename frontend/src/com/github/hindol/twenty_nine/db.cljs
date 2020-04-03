@@ -18,10 +18,14 @@
 
 (defn deal-half
   [deck]
-  (zipmap [:north :west :south :east] (->> deck shuffle (partition 4))))
+  (zipmap [:north :west :south :east] (partition 4 deck)))
 
 (defn deal-remaining
   [])
+
+(defn deal
+  []
+  (zipmap [:north :west :south :east] (->> deck shuffle (partition 8))))
 
 (defn trick
   [{:keys [leader]}]
@@ -40,8 +44,16 @@
             :past    []}})
 
 (def app-db
-  {:rounds {:current (round {:hands (deal-half deck)})
-            :past    []}})
+  {:players {:north :machine
+             :west  :machine
+             :south :human
+             :east  :machine}
+   :rounds  {:current (round {:hands (deal)})
+             :past    []}})
 
-(defn play
-  [])
+; Accessors
+
+(defn turn
+  [db]
+  (let [{:keys [turns plays]} (get-in db [:rounds :current :tricks :current])]
+    (get turns (count plays))))

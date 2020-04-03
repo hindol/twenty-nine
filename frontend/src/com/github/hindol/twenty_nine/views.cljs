@@ -19,39 +19,54 @@
 (defn card
   [c props]
   (when c
-    [:img (merge {:src (url-for c)} props)]))
+    [:figure.image.is-fullwidth
+     [:img (merge {:src (url-for c)} props)]]))
 
 (defn trick
   []
   (let [{plays :plays} @(rf/subscribe [:trick])]
     [:div.columns
      [:div.column
-      [:div.level
-       [:div.level-item [card (:north plays)]]]
-      [:div.level
-       [:div.level-left [card (:west plays)]]
-       [:div.level-right [card (:east plays)]]]
-      [:div.level
-       [:div.level-item [card (:south plays)]]]]]))
+      [:div.columns
+       [:div.column]
+       [:div.column]
+       [:div.column [card (:north plays)]]
+       [:div.column]
+       [:div.column]]
+      [:div.columns
+       [:div.column]
+       [:div.column [card (:west plays)]]
+       [:div.column]
+       [:div.column [card (:east plays)]]
+       [:div.column]]
+      [:div.columns
+       [:div.column]
+       [:div.column]
+       [:div.column [card (:south plays)]]
+       [:div.column]
+       [:div.column]]]]))
 
 (defn show-hand
   [player]
-  (let [hand @(rf/subscribe [:hand player])
-        turn @(rf/subscribe [:turn])]
-    (into [:div.level]
-          (map (fn [c] [:div.level-item
-                        [card c {:on-click #(rf/dispatch [:play c {:player player
-                                                                   :turn   turn}])}]])
-               hand))))
+  (let [hand  @(rf/subscribe [:hand player])
+        cards (map (fn [c] [:div.column
+                            [card c {:on-click #(rf/dispatch [:play player c])}]])
+                   hand)]
+    (-> [:div.columns]
+        (into cards)
+        (into (repeat (- 8 (count cards)) [:div.column])))))
 
 (defn app-db
   []
-  [:pre (with-out-str (pp/pprint @(rf/subscribe [:app-db])))])
+  [:div.columns
+   [:div.column
+    [:pre (with-out-str (pp/pprint @(rf/subscribe [:app-db])))]]])
 
 (defn ui
   []
-  [:div.columns
-   [:div.column
-    [trick]
-    [show-hand :south]
-    [app-db]]])
+  [:div.container.is-fluid
+   [:div.columns
+    [:div.column
+     [trick]
+     [show-hand :south]
+     [app-db]]]])

@@ -10,9 +10,10 @@
        (name suit) "/"
        (let [r (str/lower-case (name rank))]
          (case r
-           "jack" "j"
+           "ace"   "1"
+           "jack"  "j"
            "queen" "q"
-           "king" "k"
+           "king"  "k"
            r))
        (str/lower-case (subs (name suit) 0 1)) ".svg"))
 
@@ -28,12 +29,12 @@
     [:div.columns
      [:div.column
       [:div.columns.is-mobile.is-centered
-       [:div.column.is-2 [card (:north plays)]]]
+       [:div.column.is-1 [card (:north plays)]]]
       [:div.columns.is-mobile.is-centered
-       [:div.column.is-2 [card (:west plays)]]
-       [:div.column.is-2.is-offset-2 [card (:east plays)]]]
+       [:div.column.is-1 [card (:west plays)]]
+       [:div.column.is-1.is-offset-2 [card (:east plays)]]]
       [:div.columns.is-mobile.is-centered
-       [:div.column.is-2 [card (:south plays)]]]]]))
+       [:div.column.is-1 [card (:south plays)]]]]]))
 
 (defn show-hand
   [player]

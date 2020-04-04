@@ -1,14 +1,17 @@
 (ns com.github.hindol.twenty-nine.db)
 
-(defn turns
-  []
-  (cycle [:north :west :south :east]))
-
 (def suits
   [:diamonds :clubs :hearts :spades])
 
 (def ranks
-  [:1 :7 :8 :9 :10 :jack :queen :king])
+  [:7 :8 :queen :king :10 :ace :9 :jack])
+
+(def players
+  [:north :west :south :east])
+
+(defn turns
+  []
+  (take 7 (cycle players)))
 
 (def deck
   (for [s suits
@@ -17,15 +20,15 @@
      :rank r}))
 
 (defn deal-half
-  [deck]
-  (zipmap [:north :west :south :east] (partition 4 deck)))
+  []
+  (zipmap players (->> deck shuffle (partition 4) (map vec))))
 
 (defn deal-remaining
   [])
 
 (defn deal
   []
-  (zipmap [:north :west :south :east] (->> deck shuffle (partition 8))))
+  (zipmap [:north :west :south :east] (->> deck shuffle (partition 8) (map vec))))
 
 (defn trick
   [{:keys [leader]}]
@@ -36,9 +39,10 @@
    :plays {}})
 
 (defn round
-  [{:keys [hands]}]
-  {:hands  hands
-   :trump  {:suit    :clubs
+  []
+  {:hands  (deal)
+   :bidder (rand-nth players)
+   :trump  {:suit    (rand-nth suits)
             :exposed false}
    :tricks {:current (trick {:leader :south})
             :past    []}})
@@ -48,12 +52,5 @@
              :west  :machine
              :south :human
              :east  :machine}
-   :rounds  {:current (round {:hands (deal)})
+   :rounds  {:current nil
              :past    []}})
-
-; Accessors
-
-(defn turn
-  [db]
-  (let [{:keys [turns plays]} (get-in db [:rounds :current :tricks :current])]
-    (get turns (count plays))))

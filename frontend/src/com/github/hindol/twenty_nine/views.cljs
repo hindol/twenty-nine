@@ -27,34 +27,21 @@
   (let [{plays :plays} @(rf/subscribe [:trick])]
     [:div.columns
      [:div.column
-      [:div.columns
-       [:div.column]
-       [:div.column]
-       [:div.column [card (:north plays)]]
-       [:div.column]
-       [:div.column]]
-      [:div.columns
-       [:div.column]
-       [:div.column [card (:west plays)]]
-       [:div.column]
-       [:div.column [card (:east plays)]]
-       [:div.column]]
-      [:div.columns
-       [:div.column]
-       [:div.column]
-       [:div.column [card (:south plays)]]
-       [:div.column]
-       [:div.column]]]]))
+      [:div.columns.is-mobile.is-centered
+       [:div.column.is-2 [card (:north plays)]]]
+      [:div.columns.is-mobile.is-centered
+       [:div.column.is-2 [card (:west plays)]]
+       [:div.column.is-2.is-offset-2 [card (:east plays)]]]
+      [:div.columns.is-mobile.is-centered
+       [:div.column.is-2 [card (:south plays)]]]]]))
 
 (defn show-hand
   [player]
   (let [hand  @(rf/subscribe [:hand player])
-        cards (map (fn [c] [:div.column
+        cards (map (fn [c] [:div.column.is-1
                             [card c {:on-click #(rf/dispatch [:play player c])}]])
                    hand)]
-    (-> [:div.columns]
-        (into cards)
-        (into (repeat (- 8 (count cards)) [:div.column])))))
+    (into [:div.columns.is-mobile.is-centered] cards)))
 
 (defn app-db
   []

@@ -25,24 +25,26 @@
 
 (defn trick
   []
-  (let [{plays :plays} @(rf/subscribe [:trick])]
+  (let [{plays :plays} @(rf/subscribe [:trick])
+        columns        ["columns" "is-mobile" "is-centered" "is-variable" "is-3-desktop" "is-2-tablet" "is-1-mobile"]
+        column         ["column" "is-1-desktop" "is-2-tablet" "is-3-mobile"]]
     [:div.columns
      [:div.column
-      [:div.columns.is-mobile.is-centered
-       [:div.column.is-1 [card (:north plays)]]]
-      [:div.columns.is-mobile.is-centered
-       [:div.column.is-1 [card (:west plays)]]
-       [:div.column.is-1.is-offset-2 [card (:east plays)]]]
-      [:div.columns.is-mobile.is-centered
-       [:div.column.is-1 [card (:south plays)]]]]]))
+      [:div {:class columns}
+       [:div {:class column} [card (:north plays)]]]
+      [:div {:class columns}
+       [:div {:class column} [card (:west plays)]]
+       [:div.is-offset-2 {:class column} [card (:east plays)]]]
+      [:div {:class columns}
+       [:div {:class column} [card (:south plays)]]]]]))
 
 (defn show-hand
   [player]
   (let [hand  @(rf/subscribe [:hand player])
-        cards (map (fn [c] [:div.column.is-1
+        cards (map (fn [c] [:div.column.is-1-desktop.is-3-mobile
                             [card c {:on-click #(rf/dispatch [:play player c])}]])
                    hand)]
-    (into [:div.columns.is-mobile.is-centered] cards)))
+    (into [:div.columns.is-mobile.is-centered.is-variable.is-1-mobile.is-3-desktop.is-multiline] cards)))
 
 (defn app-db
   []

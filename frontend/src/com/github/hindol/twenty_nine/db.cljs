@@ -1,4 +1,6 @@
-(ns com.github.hindol.twenty-nine.db)
+(ns com.github.hindol.twenty-nine.db
+  (:require
+   [com.github.hindol.twenty-nine.utils :refer [position]]))
 
 (def suits
   [:diamonds :clubs :hearts :spades])
@@ -19,6 +21,13 @@
     {:suit s
      :rank r}))
 
+(defn sort-hand
+  [cards]
+  (vec
+   (sort-by (juxt #(position #{(:suit %)} suits)
+                  #(position #{(:rank %)} ranks))
+            cards)))
+
 (defn deal-half
   []
   (zipmap players (->> deck shuffle (partition 4) (map vec))))
@@ -28,7 +37,7 @@
 
 (defn deal
   []
-  (zipmap [:north :west :south :east] (->> deck shuffle (partition 8) (map vec))))
+  (zipmap [:north :west :south :east] (->> deck shuffle (partition 8) (map sort-hand))))
 
 (defn trick
   [{:keys [leader]}]

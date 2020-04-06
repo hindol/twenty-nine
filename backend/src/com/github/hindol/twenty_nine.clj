@@ -1,6 +1,7 @@
 (ns com.github.hindol.twenty-nine
   (:require
    [clojure.core.async :as async]
+   [clojure.pprint :as pp]
    [io.pedestal.http :as http]
    [io.pedestal.http.jetty.websockets :as ws]
    [io.pedestal.http.route :as route]
@@ -10,7 +11,7 @@
 
 (defn ws-client
   [ws-session send-ch]
-  (async/put! send-ch (str "(ws-client " ws-session " " send-ch ")"))
+  (async/put! send-ch (with-out-str (pp/pprint ws-session)))
   (swap! ws-clients assoc ws-session send-ch))
 
 (defn send-message-to-all!
@@ -20,10 +21,11 @@
 
 (def ws-paths
   {"/ws" {:on-connect (ws/start-ws-connection ws-client)
-          :on-text    (fn [message] (prn "A client sent - " message))
-          :on-binary  (fn [payload _offset _length] (prn "A client sent - " payload))
-          :on-error   (fn [e] (prn "Socket error - " e))
-          :on-close   (fn [_code reason] (prn "Socket closed - " reason))}})
+          :on-text    (fn [message] (println "A client sent - " message))
+          :on-binary  (fn [payload _offset _length] (println "A client sent - " payload))
+          :on-error   (fn [e] (println "Socket error - " e))
+          :on-close   (fn [code reason]
+                        (println "Socket closed - " code reason))}})
 
 (def routes
   (route/expand-routes
@@ -33,31 +35,36 @@
   {:env                    :prod
    ::http/routes            routes
    ::http/type              :jetty
-   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths)}
-   ::http/port              8080})
+   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths)}})
 
 (defonce server (atom nil))
 
 (defn start-dev
   []
-  (reset! server (-> service
-                     (merge {:env                  :dev
-                             ::http/join?           false
-                             ::http/routes          #(deref #'routes)
-                             ::http/allowed-origins {:creds           true
-                                                     :allowed-origins (constantly true)}
-                             ::http/host            "0.0.0.0"})
-                     http/default-interceptors
-                     http/dev-interceptors
-                     http/create-server))
-  (http/start @server))
+  (when-not @server
+    (reset! server (-> service
+                       (merge {:env                  :dev
+                               ::http/join?           false
+                               ::http/routes          #(deref #'routes)
+                               ::http/allowed-origins {:creds           true
+                                                       :allowed-origins (constantly true)}
+                               ::http/host            "127.0.0.1"
+                               ::http/port            8080})
+                       http/default-interceptors
+                       http/dev-interceptors
+                       http/create-server))
+    (http/start @server)))
 
 (defn stop-dev
   []
-  (http/stop @server)
-  (reset! server nil))
+  (when @server
+    (http/stop @server)
+    (reset! server nil)))
 
 (defn -main
-  [& _]
-  (start-dev)
-  (stop-dev))
+  [& {:as args}]
+  (-> service
+      (merge {::http/host (get args "host")
+              ::http/port (Integer/parseInt (get args "port"))})
+      http/create-server
+      http/start))

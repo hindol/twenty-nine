@@ -1,31 +1,64 @@
 (ns com.github.hindol.twenty-nine
   (:require
    [clojure.core.async :as async]
-   [clojure.pprint :as pp]
    [io.pedestal.http :as http]
    [io.pedestal.http.jetty.websockets :as ws]
-   [io.pedestal.http.route :as route]
-   [io.pedestal.test :as test]))
+   [io.pedestal.http.route :as route])
+  (:import
+   (org.eclipse.jetty.websocket.api Session
+                                    WebSocketAdapter)))
 
-(defonce ws-clients (atom {}))
+(def ws-clients (atom {}))
 
-(defn ws-client
+(defn add-client
   [ws-session send-ch]
-  (async/put! send-ch (with-out-str (pp/pprint ws-session)))
+  (async/put! send-ch (pr-str ws-session))
   (swap! ws-clients assoc ws-session send-ch))
 
-(defn send-message-to-all!
-  [message]
-  (doseq [[_session channel] @ws-clients]
-    (async/put! channel message)))
+(defn ws-listener
+  [_request _response ws-map]
+  (proxy [WebSocketAdapter] []
+    (onWebSocketConnect [^Session ws-session]
+      (proxy-super onWebSocketConnect ws-session)
+      (when-let [f (:on-connect ws-map)]
+        (f ws-session)))
+    (onWebSocketClose [status-code reason]
+      (when-let [f (:on-close ws-map)]
+        (f (.getSession this) status-code reason)))
+    (onWebSocketError [^Throwable e]
+      (when-let [f (:on-error ws-map)]
+        (f (.getSession this) e)))
+
+    (onWebSocketText [^String message]
+      (when-let [f (:on-text ws-map)]
+        (f (.getSession this) message)))
+    (onWebSocketBinary [^bytes payload offset length]
+      (when-let [f (:on-binary ws-map)]
+        (f (.getSession this) payload offset length)))))
+
+(defn broadcast!
+  ([message] (broadcast! @ws-clients message))
+  ([ws-clients message]
+   (doseq [[^Session ws-session channel] ws-clients]
+     (when (.isOpen ws-session)
+       (async/put! channel message)))))
+
+(count @ws-clients)
 
 (def ws-paths
-  {"/ws" {:on-connect (ws/start-ws-connection ws-client)
-          :on-text    (fn [message] (println "A client sent - " message))
-          :on-binary  (fn [payload _offset _length] (println "A client sent - " payload))
-          :on-error   (fn [e] (println "Socket error - " e))
-          :on-close   (fn [code reason]
-                        (println "Socket closed - " code reason))}})
+  {"/ws" {:on-connect (ws/start-ws-connection add-client)
+          :on-text    (fn on-text
+                        [_ws-session message]
+                        (println "A client sent - " message))
+          :on-binary  (fn on-binary
+                        [_ws-session payload _offset _length]
+                        (println "A client sent - " payload))
+          :on-error   (fn on-error
+                        [_ws-session e]
+                        (println "Socket error - " e))
+          :on-close   (fn on-close
+                        [ws-session _code _reason]
+                        (swap! ws-clients dissoc ws-session))}})
 
 (def routes
   (route/expand-routes
@@ -35,31 +68,7 @@
   {:env                    :prod
    ::http/routes            routes
    ::http/type              :jetty
-   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths)}})
-
-(defonce server (atom nil))
-
-(defn start-dev
-  []
-  (when-not @server
-    (reset! server (-> service
-                       (merge {:env                  :dev
-                               ::http/join?           false
-                               ::http/routes          #(deref #'routes)
-                               ::http/allowed-origins {:creds           true
-                                                       :allowed-origins (constantly true)}
-                               ::http/host            "127.0.0.1"
-                               ::http/port            8080})
-                       http/default-interceptors
-                       http/dev-interceptors
-                       http/create-server))
-    (http/start @server)))
-
-(defn stop-dev
-  []
-  (when @server
-    (http/stop @server)
-    (reset! server nil)))
+   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths {:listener-fn ws-listener})}})
 
 (defn -main
   [& {:as args}]

@@ -2,6 +2,18 @@
 # Created by https://www.gitignore.io/api/node,react
 # Edit at https://www.gitignore.io/?templates=node,react
 
+/target
+/classes
+/checkouts
+*.jar
+*.class
+/.cpcache
+/.lein-*
+/.nrepl-history
+/.nrepl-port
+.hgignore
+.hg/
+
 .cpcache/
 .shadow-cljs/
 public/

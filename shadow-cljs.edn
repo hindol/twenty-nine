@@ -3,6 +3,6 @@
                   :output-dir "public/js"
                   :target     :browser
                   :http-root  "public"
-                  :release    {:output-dir "../docs/js"}}}
- :deps     true
+                  :release    {:output-dir "docs/js"}}}
+ :deps     {:aliases [:cljs]}
  :dev-http {3000 "public"}}

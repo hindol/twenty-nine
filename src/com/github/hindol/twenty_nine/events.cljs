@@ -8,9 +8,14 @@
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
- :init-db
+ :init
  (fn [_ _]
-   {:db       db/app-db
+   {:connect-ws {:on-text [:init-db]}}))
+
+(rf/reg-event-fx
+ :init-db
+ (fn [_ [_ db]]
+   {:db       db
     :dispatch [:init-round]}))
 
 (rf/reg-event-db

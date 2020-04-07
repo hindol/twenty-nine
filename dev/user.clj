@@ -14,7 +14,7 @@
                                ::http/routes          #(deref #'core/routes)
                                ::http/allowed-origins {:creds           true
                                                        :allowed-origins (constantly true)}
-                               ::http/host            "127.0.0.1"
+                               ::http/host            "0.0.0.0"
                                ::http/port            8080})
                        http/default-interceptors
                        http/dev-interceptors
@@ -29,6 +29,7 @@
 
 (defn reset
   []
+  (require 'com.github.hindol.twenty-nine :reload-all)
   (stop-dev)
   (start-dev))
 

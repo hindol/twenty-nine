@@ -57,9 +57,10 @@
             :past    []}})
 
 (def app-db
-  {:players {:north :machine
-             :west  :machine
-             :south :human
-             :east  :machine}
-   :rounds  {:current nil
-             :past    []}})
+  (atom {:version 0
+         :players {:north :machine
+                   :west  :machine
+                   :south :human
+                   :east  :machine}
+         :rounds  {:current nil
+                   :past    []}}))

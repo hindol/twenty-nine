@@ -1,19 +1,13 @@
 (ns com.github.hindol.twenty-nine
   (:require
    [clojure.core.async :as async]
+   [com.github.hindol.twenty-nine.db :as db]
    [io.pedestal.http :as http]
    [io.pedestal.http.jetty.websockets :as ws]
    [io.pedestal.http.route :as route])
   (:import
    (org.eclipse.jetty.websocket.api Session
                                     WebSocketAdapter)))
-
-(def ws-clients (atom {}))
-
-(defn add-client
-  [ws-session send-ch]
-  (async/put! send-ch (pr-str ws-session))
-  (swap! ws-clients assoc ws-session send-ch))
 
 (defn ws-listener
   [_request _response ws-map]
@@ -36,6 +30,13 @@
       (when-let [f (:on-binary ws-map)]
         (f (.getSession this) payload offset length)))))
 
+(def ws-clients (atom {}))
+
+(defn add-client
+  [ws-session send-ch]
+  (async/put! send-ch (pr-str @db/app-db))
+  (swap! ws-clients assoc ws-session send-ch))
+
 (defn broadcast!
   ([message] (broadcast! @ws-clients message))
   ([ws-clients message]
@@ -43,13 +44,12 @@
      (when (.isOpen ws-session)
        (async/put! channel message)))))
 
-(count @ws-clients)
-
 (def ws-paths
   {"/ws" {:on-connect (ws/start-ws-connection add-client)
           :on-text    (fn on-text
-                        [_ws-session message]
-                        (println "A client sent - " message))
+                        [ws-session _message]
+                        (let [send-ch (get @ws-clients ws-session)]
+                          (async/put! send-ch (pr-str @db/app-db))))
           :on-binary  (fn on-binary
                         [_ws-session payload _offset _length]
                         (println "A client sent - " payload))
@@ -58,6 +58,7 @@
                         (println "Socket error - " e))
           :on-close   (fn on-close
                         [ws-session _code _reason]
+                        (println "Connection closed.")
                         (swap! ws-clients dissoc ws-session))}})
 
 (def routes

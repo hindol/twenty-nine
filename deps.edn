@@ -6,7 +6,13 @@
            org.clojure/core.async       {:mvn/version "1.1.587"}
            org.clojure/data.json        {:mvn/version "0.2.6"}
            org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}}
- :aliases {:compile {:main-opts ["-e" "(compile,'com.github.hindol.twenty-nine)"]}
+ :aliases {:cljs    {:extra-deps {cljs-http                   {:mvn/version "0.1.46"}
+                                  haslett                     {:mvn/version "0.1.6"}
+                                  me.flowthing/re-frame-utils {:mvn/version "0.1.1"}
+                                  re-frame                    {:mvn/version "0.12.0"}
+                                  reagent                     {:mvn/version "0.10.0"}
+                                  thheller/shadow-cljs        {:mvn/version "2.8.94"}}}
+           :compile {:main-opts ["-e" "(compile,'com.github.hindol.twenty-nine)"]}
            :dev     {:extra-paths ["dev" "classes"]}
            :test    {:extra-paths ["test"]
                      :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}

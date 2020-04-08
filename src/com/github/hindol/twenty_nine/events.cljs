@@ -12,7 +12,7 @@
 (rf/reg-event-fx
  :init
  (fn [_ _]
-   {:connect-ws {}}))
+   {:ws-connect {}}))
 
 (rf/reg-event-fx
  :on-text
@@ -24,7 +24,7 @@
  (fn [{:keys [db]}]
    (let [diff (edit/diff @db/app-db db)]
      (reset! db/app-db db)
-     {:send-ws {:message [:apply-patch (fmt/get-edits diff)]}})))
+     {:ws-send {:message [:apply-patch (fmt/get-edits diff)]}})))
 
 (rf/reg-event-db
  :apply-patch
@@ -33,10 +33,15 @@
 
 (rf/reg-event-fx
  :init-db
+ (rf/inject-cofx ::inject/sub [:round])
  (fn [_ [_ db]]
    (reset! db/app-db db)
-   {:db       db
-    :dispatch [:init-round]}))
+   {:db db}))
+
+(rf/reg-event-fx
+ :init-game
+ (fn [_ _]
+   {:ws-send {:message [:init-game]}}))
 
 (rf/reg-event-fx
  :init-round
@@ -55,28 +60,31 @@
      (let [candidates (engine/candidates (get-in round [:hands player])
                                          (get-in round [:tricks :current]))]
        (when (position #{card} candidates)
-         {:db         (-> round
-                          (update-in [:tricks :current :plays] assoc player card)
-                          (update-in [:hands player] #(remove #{card} %)))
-          :dispatch-n [[:change-turn]
-                       [:send-diff]]})))))
+         {:db             (-> round
+                              (update-in [:tricks :current :plays] assoc player card)
+                              (update-in [:hands player] #(remove #{card} %)))
+          :dispatch       [:send-diff]
+          :dispatch-later [{:ms       500
+                            :dispatch [:change-turn]}]})))))
+
+#_(rf/reg-event-fx
+   :change-turn
+   [(i/path [:rounds :current :hands])
+    (rf/inject-cofx ::inject/sub [:trick])
+    (rf/inject-cofx ::inject/sub [:players])
+    (rf/inject-cofx ::inject/sub [:turn])]
+   (fn [{trick   :trick
+         players :players
+         hands   :db
+         turn    :turn} _]
+     (if (= :end-trick turn)
+       {:dispatch-later [{:ms       1500
+                          :dispatch [:end-trick]}]})))
 
 (rf/reg-event-fx
  :change-turn
- [(i/path [:rounds :current :hands])
-  (rf/inject-cofx ::inject/sub [:trick])
-  (rf/inject-cofx ::inject/sub [:players])
-  (rf/inject-cofx ::inject/sub [:turn])]
- (fn [{trick   :trick
-       players :players
-       hands   :db
-       turn    :turn} _]
-   (if (= :end-trick turn)
-     {:dispatch-later [{:ms       1500
-                        :dispatch [:end-trick]}]}
-     (when (= :machine (get players turn))
-       {:dispatch-later [{:ms       500
-                          :dispatch [:play turn (engine/play (get hands turn) trick)]}]}))))
+ (fn [_ _]
+   {:ws-send {:message [:change-turn]}}))
 
 (rf/reg-event-fx
  :end-trick

@@ -57,6 +57,7 @@
   [:div.container.is-fluid
    [:div.columns
     [:div.column
+     [:button.button {:on-click #(rf/dispatch [:init-game])} "(Re)start"]
      [trick]
      [show-hand :south]
      [app-db]]]])

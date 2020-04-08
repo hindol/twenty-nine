@@ -56,13 +56,17 @@
    :tricks {:current (trick {:leader :south})
             :past    []}})
 
+(defn game
+  []
+  {:version 0
+   :players {:north :machine
+             :west  :machine
+             :south :human
+             :east  :machine}
+   :rounds  {:current (round)
+             :past    []}})
+
 ;; In the backend, this is the main game state.
 ;; In the frontend, this is the last synced version from the server.
 (def app-db
-  (atom {:version 0
-         :players {:north :machine
-                   :west  :machine
-                   :south :human
-                   :east  :machine}
-         :rounds  {:current nil
-                   :past    []}}))
+  (atom nil))

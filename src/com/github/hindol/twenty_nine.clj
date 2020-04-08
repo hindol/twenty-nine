@@ -1,7 +1,9 @@
 (ns com.github.hindol.twenty-nine
   (:require
    [clojure.core.async :as async]
+   [clojure.edn :as edn]
    [com.github.hindol.twenty-nine.db :as db]
+   [com.github.hindol.twenty-nine.engine :as engine]
    [editscript.core :as edit]
    [editscript.edit :as fmt]
    [io.pedestal.http :as http]
@@ -46,13 +48,33 @@
      (when (.isOpen ws-session)
        (async/put! channel message)))))
 
+(defn on-text
+  [ws-session message]
+  (let [[id & _ :as event] (edn/read-string message)]
+    (case id
+      :init-game (do
+                   (reset! db/app-db (db/game))
+                   (broadcast! (pr-str [:init-db @db/app-db])))
+      :change-turn (loop []
+                     (let [round                            (get-in @db/app-db [:rounds :current])
+                           hands                            (:hands round)
+                           {:keys [turns plays]
+                            :as   trick} (get-in round [:tricks :current])
+                           turn                             (get turns (count plays))]
+                       (when (= :machine (get (:players @db/app-db) turn))
+                         (let [card    (engine/play (get hands turn) trick)
+                               prev-db @db/app-db]
+                           (swap! db/app-db assoc-in [:rounds :current :tricks :current :plays turn] card)
+                           (broadcast! (pr-str [:apply-patch (fmt/get-edits (edit/diff prev-db @db/app-db))]))
+                           (recur)))))
+      :apply-patch (do
+                     (swap! db/app-db edit/patch (fmt/edits->script (second event)))
+                     (broadcast! (remove #{ws-session} @ws-clients)
+                                 message)))))
+
 (def ws-paths
   {"/ws" {:on-connect (ws/start-ws-connection add-client)
-          :on-text    (fn on-text
-                        [ws-session message]
-                        (prn ws-session message)
-                        (broadcast! (remove #{ws-session} @ws-clients)
-                                    message))
+          :on-text    on-text
           :on-binary  (fn on-binary
                         [_ws-session payload _offset _length]
                         (println "A client sent - " payload))

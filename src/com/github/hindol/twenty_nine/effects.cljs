@@ -24,7 +24,7 @@
          (rf/dispatch (conj on-failure body)))))))
 
 (rf/reg-fx
- :connect-ws
+ :ws-connect
  (fn []
    (go
      (when-let [ws-stream (<! (ws/connect (str "wss://" (.. js/document -location -hostname) "/ws")
@@ -38,7 +38,7 @@
            (ws/close ws-stream)))))))
 
 (rf/reg-fx
- :send-ws
+ :ws-send
  (fn [{:keys [message]}]
    (when @web-socket
      (go

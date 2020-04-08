@@ -16,7 +16,7 @@
 
 .cpcache/
 .shadow-cljs/
-public/
+/resources/dev/js/
 
 ### Node ###
 # Logs

@@ -27,7 +27,7 @@
   []
   (let [{plays :plays} @(rf/subscribe [:trick])
         columns        ["columns" "is-mobile" "is-centered" "is-variable" "is-3-desktop" "is-2-tablet" "is-1-mobile"]
-        column         ["column" "is-1-desktop" "is-2-tablet" "is-3-mobile"]]
+        column         ["column" "is-1-desktop" "is-1-tablet" "is-3-mobile"]]
     [:div.columns
      [:div.column
       [:div {:class columns}
@@ -41,10 +41,10 @@
 (defn show-hand
   [player]
   (let [hand  @(rf/subscribe [:hand player])
-        cards (map (fn [c] [:div.column.is-1-desktop.is-3-mobile
+        cards (map (fn [c] [:div.column.is-1-desktop.is-1-tablet.is-3-mobile
                             [card c {:on-click #(rf/dispatch [:play player c])}]])
                    hand)]
-    (into [:div.columns.is-mobile.is-centered.is-variable.is-1-mobile.is-3-desktop.is-multiline] cards)))
+    (into [:div.columns.is-mobile.is-centered.is-multiline.is-variable.is-3-desktop.is-2-tablet.is-1-mobile] cards)))
 
 (defn app-db
   []

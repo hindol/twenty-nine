@@ -2,6 +2,8 @@
   (:require
    [clojure.core.async :as async]
    [com.github.hindol.twenty-nine.db :as db]
+   [editscript.core :as edit]
+   [editscript.edit :as fmt]
    [io.pedestal.http :as http]
    [io.pedestal.http.jetty.websockets :as ws]
    [io.pedestal.http.route :as route])
@@ -34,7 +36,7 @@
 
 (defn add-client
   [ws-session send-ch]
-  (async/put! send-ch (pr-str @db/app-db))
+  (async/put! send-ch (pr-str [:init-db @db/app-db]))
   (swap! ws-clients assoc ws-session send-ch))
 
 (defn broadcast!
@@ -47,9 +49,10 @@
 (def ws-paths
   {"/ws" {:on-connect (ws/start-ws-connection add-client)
           :on-text    (fn on-text
-                        [ws-session _message]
-                        (let [send-ch (get @ws-clients ws-session)]
-                          (async/put! send-ch (pr-str @db/app-db))))
+                        [ws-session message]
+                        (prn ws-session message)
+                        (broadcast! (remove #{ws-session} @ws-clients)
+                                    message))
           :on-binary  (fn on-binary
                         [_ws-session payload _offset _length]
                         (println "A client sent - " payload))
@@ -68,8 +71,10 @@
 (def service
   {:env                    :prod
    ::http/routes            routes
+   ::http/resource-path     "/public"
    ::http/type              :jetty
-   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths {:listener-fn ws-listener})}})
+   ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths {:listener-fn ws-listener})}
+   ::http/secure-headers    {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: wss: ws:;"}})
 
 (defn -main
   [& {:as args}]

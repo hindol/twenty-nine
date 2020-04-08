@@ -3,10 +3,12 @@
    [cljs.core.async.macros :refer [go]])
   (:require
    [cljs-http.client :as http]
-   [cljs.core.async :refer [<!]]
+   [cljs.core.async :refer [<! >!]]
    [haslett.client :as ws]
    [haslett.format :as fmt]
    [re-frame.core :as rf]))
+
+(def web-socket (atom nil))
 
 (rf/reg-fx
  :http
@@ -23,13 +25,21 @@
 
 (rf/reg-fx
  :connect-ws
- (fn [{:keys [on-text]}]
+ (fn []
    (go
-     (let [ws-stream (<! (ws/connect (str "ws://" (.. js/document -location -hostname) ":8080/ws")
-                                     {:format fmt/edn}))]
+     (when-let [ws-stream (<! (ws/connect (str "wss://" (.. js/document -location -hostname) "/ws")
+                                          {:format fmt/edn}))]
+       (reset! web-socket ws-stream)
        (loop []
-         (if-let [edn (<! (:source ws-stream))]
+         (if-let [message (<! (:source ws-stream))]
            (do
-             (rf/dispatch (conj on-text edn))
+             (rf/dispatch [:on-text message])
              (recur))
            (ws/close ws-stream)))))))
+
+(rf/reg-fx
+ :send-ws
+ (fn [{:keys [message]}]
+   (when @web-socket
+     (go
+       (>! (:sink @web-socket) message)))))

@@ -12,6 +12,7 @@
                        (merge {:env                  :dev
                                ::http/join?           false
                                ::http/routes          #(deref #'core/routes)
+                               ::http/resource-path   "/dev"
                                ::http/allowed-origins {:creds           true
                                                        :allowed-origins (constantly true)}
                                ::http/host            "0.0.0.0"

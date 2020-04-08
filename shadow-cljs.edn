@@ -1,8 +1,7 @@
-{:builds   {:app {:asset-path "/js"
-                  :modules    {:app {:init-fn com.github.hindol.twenty-nine/init}}
-                  :output-dir "public/js"
-                  :target     :browser
-                  :http-root  "public"
-                  :release    {:output-dir "docs/js"}}}
- :deps     {:aliases [:cljs]}
- :dev-http {3000 "public"}}
+{:builds {:app {:asset-path "/js"
+                :modules    {:app {:init-fn com.github.hindol.twenty-nine/init}}
+                :output-dir "resources/dev/js"
+                :target     :browser
+                :http-root  "resources/dev"
+                :release    {:output-dir "resources/public/js"}}}
+ :deps   {:aliases [:cljs]}}

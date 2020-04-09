@@ -30,7 +30,6 @@
 
 (defn reset
   []
-  (require 'com.github.hindol.twenty-nine :reload-all)
   (stop-dev)
   (start-dev))
 

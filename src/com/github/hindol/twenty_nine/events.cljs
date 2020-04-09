@@ -65,20 +65,6 @@
           :dispatch-n [[:send-diff]
                        [:change-turn]]})))))
 
-#_(rf/reg-event-fx
-   :change-turn
-   [(i/path [:rounds :current :hands])
-    (rf/inject-cofx ::inject/sub [:trick])
-    (rf/inject-cofx ::inject/sub [:players])
-    (rf/inject-cofx ::inject/sub [:turn])]
-   (fn [{trick   :trick
-         players :players
-         hands   :db
-         turn    :turn} _]
-     (if (= :end-trick turn)
-       {:dispatch-later [{:ms       1500
-                          :dispatch [:end-trick]}]})))
-
 (rf/reg-event-fx
  :change-turn
  (fn [_ _]

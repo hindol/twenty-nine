@@ -33,7 +33,6 @@
 
 (rf/reg-event-fx
  :init-db
- (rf/inject-cofx ::inject/sub [:round])
  (fn [_ [_ db]]
    (reset! db/app-db db)
    {:db db}))
@@ -60,12 +59,11 @@
      (let [candidates (engine/candidates (get-in round [:hands player])
                                          (get-in round [:tricks :current]))]
        (when (position #{card} candidates)
-         {:db             (-> round
-                              (update-in [:tricks :current :plays] assoc player card)
-                              (update-in [:hands player] #(remove #{card} %)))
-          :dispatch       [:send-diff]
-          :dispatch-later [{:ms       500
-                            :dispatch [:change-turn]}]})))))
+         {:db         (-> round
+                          (update-in [:tricks :current :plays] assoc player card)
+                          (update-in [:hands player] #(remove #{card} %)))
+          :dispatch-n [[:send-diff]
+                       [:change-turn]]})))))
 
 #_(rf/reg-event-fx
    :change-turn

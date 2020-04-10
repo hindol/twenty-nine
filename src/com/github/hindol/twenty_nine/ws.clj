@@ -29,14 +29,25 @@
       (when-let [f (:on-binary ws-map)]
         (f (.getSession this) payload offset length)))))
 
-(defn add-client
-  [ws-session send-ch]
-  (async/put! send-ch (pr-str [:init-db @db/app-db]))
-  (swap! clients assoc ws-session send-ch))
-
 (defn broadcast!
   ([message] (broadcast! @clients message))
   ([clients message]
    (doseq [[^Session ws-session channel] clients]
      (when (.isOpen ws-session)
        (async/put! channel (pr-str message))))))
+
+(let [heartbeat (atom nil)]
+  (defn start-heartbeat
+    []
+    (when-not @heartbeat
+      (reset! heartbeat
+              (async/go-loop []
+                (async/<! (async/timeout 15000))
+                (broadcast! [:ping])
+                (recur))))))
+
+(defn add-client
+  [ws-session send-ch]
+  (start-heartbeat)
+  (async/put! send-ch (pr-str [:init-db @db/app-db]))
+  (swap! clients assoc ws-session send-ch))

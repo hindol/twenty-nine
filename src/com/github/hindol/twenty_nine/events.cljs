@@ -10,6 +10,11 @@
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
+ :ping
+ (fn [_ _]
+   {:ws-send {:message [:pong]}}))
+
+(rf/reg-event-fx
  :init
  (fn [_ _]
    {:ws-connect {}}))

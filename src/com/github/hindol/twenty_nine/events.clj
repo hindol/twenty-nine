@@ -35,6 +35,11 @@
   (swap! event-handlers assoc id handler))
 
 (on-event
+ :pong
+ (fn [db _]
+   db))
+
+(on-event
  :init-game
  (fn [_ _]
    (let [game (db/game)]
@@ -88,8 +93,12 @@
 
 (on-event
  :end-round
- (fn [_ _]
-   (dispatch [:init-game])))
+ (fn [db _]
+   (let [new-db (-> db
+                    (update-in [:rounds :past] conj (get-in db [:rounds :current]))
+                    (assoc-in [:rounds :current] (db/round)))]
+     (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
+     new-db)))
 
 (on-event
  :apply-patch

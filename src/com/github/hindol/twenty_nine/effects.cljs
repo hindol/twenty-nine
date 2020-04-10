@@ -10,6 +10,17 @@
 
 (def web-socket (atom nil))
 
+(defn host-name
+  []
+  (.. js/document -location -hostname))
+
+(defn websocket-url
+  []
+  (let [host (host-name)]
+    (case host
+      "localhost" (str "ws://" host ":8080/ws")
+      (str "wss://" host "/ws"))))
+
 (rf/reg-fx
  :http
  (fn [{:keys [url method opts on-success on-failure]}]
@@ -27,7 +38,7 @@
  :ws-connect
  (fn []
    (go
-     (when-let [ws-stream (<! (ws/connect (str "wss://" (.. js/document -location -hostname) "/ws")
+     (when-let [ws-stream (<! (ws/connect (websocket-url)
                                           {:format fmt/edn}))]
        (reset! web-socket ws-stream)
        (loop []

@@ -69,15 +69,3 @@
  :change-turn
  (fn [_ _]
    {:ws-send {:message [:change-turn]}}))
-
-(rf/reg-event-fx
- :end-trick
- (i/path [:rounds :current :tricks])
- (fn [{tricks :db} _]
-   (let [trick  (:current tricks)
-         winner (engine/winner trick)]
-     {:db         (-> tricks
-                      (update :past conj (assoc trick :winner winner))
-                      (assoc :current (db/trick {:leader winner})))
-      :dispatch-n [[:change-turn]
-                   [:send-diff]]})))

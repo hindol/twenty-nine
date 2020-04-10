@@ -24,6 +24,12 @@
                     (println "No handler registered for event: " (pr-str dequeued-id)))
                   (recur)))))))
 
+(defn dispatch-later
+  [event {:keys [ms]}]
+  (async/go
+    (async/<! (async/timeout ms))
+    (dispatch event)))
+
 (defn on-event
   [id handler]
   (swap! event-handlers assoc id handler))
@@ -46,17 +52,23 @@
            turn                             (get turns (count plays) :end-trick)]
        (case turn
          :end-trick (do
-                      (dispatch [:end-trick])
+                      (dispatch-later [:end-trick] {:ms 1500})
                       db)
          (case (get (:players db) turn)
-           :machine (let [card   (engine/play (get hands turn) trick)
-                          new-db (-> db
-                                     (assoc-in [:rounds :current :tricks :current :plays turn] card)
-                                     (update-in [:rounds :current :hands turn] #(filterv (complement #{card}) %)))]
-                      (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
-                      (dispatch [:change-turn])
-                      new-db)
+           :machine (let [card (engine/play (get hands turn) trick)]
+                      (dispatch-later [:play turn card] {:ms 500})
+                      db)
            db))))))
+
+(on-event
+ :play
+ (fn [db [_ turn card]]
+   (let [new-db (-> db
+                    (assoc-in [:rounds :current :tricks :current :plays turn] card)
+                    (update-in [:rounds :current :hands turn] #(filterv (complement #{card}) %)))]
+     (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
+     (dispatch [:change-turn])
+     new-db)))
 
 (on-event
  :end-trick
@@ -69,7 +81,6 @@
                               (update :past conj (assoc trick :winner winner))
                               (assoc :current (db/trick {:leader winner}))))]
      (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
-     (prn (count tricks))
      (if (= 8 (count (get-in new-db [:rounds :current :tricks :past])))
        (dispatch [:end-round])
        (dispatch [:change-turn]))
@@ -77,7 +88,7 @@
 
 (on-event
  :end-round
- (fn [db _]
+ (fn [_ _]
    (dispatch [:init-game])))
 
 (on-event

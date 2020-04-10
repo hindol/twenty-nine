@@ -9,7 +9,7 @@
 
 (def event-handlers (atom {}))
 
-(let [event-queue (async/chan)
+(let [event-queue (async/chan 10)
       event-loop  (atom nil)]
   (defn dispatch
     [event]

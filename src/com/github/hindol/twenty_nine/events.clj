@@ -65,12 +65,20 @@
          trick  (:current tricks)
          winner (engine/winner trick)
          new-db (assoc-in db [:rounds :current :tricks]
-                   (-> tricks
-                       (update :past conj (assoc trick :winner winner))
-                       (assoc :current (db/trick {:leader winner}))))]
+                          (-> tricks
+                              (update :past conj (assoc trick :winner winner))
+                              (assoc :current (db/trick {:leader winner}))))]
      (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
-     (dispatch [:change-turn])
+     (prn (count tricks))
+     (if (= 8 (count (get-in new-db [:rounds :current :tricks :past])))
+       (dispatch [:end-round])
+       (dispatch [:change-turn]))
      new-db)))
+
+(on-event
+ :end-round
+ (fn [db _]
+   (dispatch [:init-game])))
 
 (on-event
  :apply-patch

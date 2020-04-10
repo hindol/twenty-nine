@@ -4,4 +4,4 @@
                 :target     :browser
                 :http-root  "resources/dev"
                 :release    {:output-dir "resources/public/js"}}}
- :deps   {:aliases [:cljs]}}
+ :deps   {:aliases [:cljs :shadow-cljs]}}

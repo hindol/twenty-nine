@@ -1,26 +1,27 @@
 {:paths   ["src" "resources"]
- :deps    {juji/editscript        {:mvn/version "0.4.2"}}
- :aliases {:clj     {:extra-deps {io.pedestal/pedestal.service {:mvn/version "0.5.7"}
-                                  io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
-                                  io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
-                                  org.clojure/clojure          {:mvn/version "1.10.1"}
-                                  org.clojure/core.async       {:mvn/version "1.1.587"}
-                                  org.clojure/data.json        {:mvn/version "0.2.6"}
-                                  org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}}}
-           :cljs    {:extra-deps {cljs-http                   {:mvn/version "0.1.46"}
-                                  haslett                     {:mvn/version "0.1.6"}
-                                  me.flowthing/re-frame-utils {:mvn/version "0.1.1"}
-                                  re-frame                    {:mvn/version "0.12.0"}
-                                  reagent                     {:mvn/version "0.10.0"}
-                                  thheller/shadow-cljs        {:mvn/version "2.8.94"}}}
-           :compile {:main-opts ["-e" "(compile,'com.github.hindol.twenty-nine)"]}
-           :dev     {:extra-paths ["dev" "classes"]}
-           :test    {:extra-paths ["test"]
-                     :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}
-           :runner  {:extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
-                                                             :sha     "f7ef16dc3b8332b0d77bc0274578ad5270fbfedd"}}
-                     :main-opts  ["-m" "cognitect.test-runner"
-                                  "-d" "test"]}
-           :uberjar {:extra-deps {seancorfield/depstar {:mvn/version "0.5.2"}}
-                     :main-opts  ["-m" "hf.depstar.uberjar" "twenty-nine.jar"
-                                  "-C" "-m" "com.github.hindol.twenty-nine"]}}}
+ :deps    {juji/editscript {:mvn/version "0.4.2"}}
+ :aliases {:clj         {:extra-deps {io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+                                      io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
+                                      io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+                                      org.clojure/clojure          {:mvn/version "1.10.1"}
+                                      org.clojure/core.async       {:mvn/version "1.1.587"}
+                                      org.clojure/data.json        {:mvn/version "0.2.6"}
+                                      org.slf4j/slf4j-simple       {:mvn/version "1.7.28"}}}
+           :cljs        {:extra-deps {cljs-http                   {:mvn/version "0.1.46"}
+                                      haslett                     {:mvn/version "0.1.6"}
+                                      me.flowthing/re-frame-utils {:mvn/version "0.1.1"}
+                                      re-frame                    {:mvn/version "0.12.0"}
+                                      reagent                     {:mvn/version "0.10.0"}}}
+           :compile     {:main-opts ["-e" "(compile,'com.github.hindol.twenty-nine)"]}
+           :dev         {:extra-paths ["dev" "classes"]}
+           :test        {:extra-paths ["test"]
+                         :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}
+           :runner      {:extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
+                                                                 :sha     "f7ef16dc3b8332b0d77bc0274578ad5270fbfedd"}}
+                         :main-opts  ["-m" "cognitect.test-runner"
+                                      "-d" "test"]}
+           :shadow-cljs {:extra-deps {thheller/shadow-cljs {:mvn/version "2.8.94"}}
+                         :main-opts  ["-m" "shadow.cljs.devtools.cli"]}
+           :uberjar     {:extra-deps {seancorfield/depstar {:mvn/version "0.5.2"}}
+                         :main-opts  ["-m" "hf.depstar.uberjar" "twenty-nine.jar"
+                                      "-C" "-m" "com.github.hindol.twenty-nine"]}}}

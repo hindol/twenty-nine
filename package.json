@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "shadow-cljs": "^2.8.94"
+  },
+  "scripts": {
+    "build": "npx shadow-cljs release app"
   }
 }

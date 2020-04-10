@@ -19,9 +19,12 @@
 
 (defn card
   [c props]
-  (when c
-    [:figure.image.is-fullwidth
-     [:img (merge {:src (url-for c)} props)]]))
+  [:figure.image.is-fullwidth
+   (if c
+     [:img (merge {:src (url-for c)} props)]
+     [:img (merge {:src   (url-for {:suit :clubs
+                                    :rank :2})
+                   :style {:visibility :hidden}} props)])])
 
 (defn trick
   []

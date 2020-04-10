@@ -70,3 +70,13 @@
 ;; In the frontend, this is the last synced version from the server.
 (def app-db
   (atom nil))
+
+(defn view-as
+  [db player]
+  (let [hands (get-in db [:rounds :current :hands])
+        hand  (get hands player)]
+    (-> db
+        (update-in [:rounds :current]
+                   #(-> %
+                        (dissoc :hands)
+                        (assoc :hand hand))))))

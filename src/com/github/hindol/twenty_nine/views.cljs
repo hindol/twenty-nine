@@ -55,12 +55,18 @@
    [:div.column
     [:pre (with-out-str (pp/pprint @(rf/subscribe [:app-db])))]]])
 
+(defn controls
+  []
+  [:div.level
+   [:div.level-item
+    [:button.button {:on-click #(rf/dispatch [:init-game])} "(Re)start"]]])
+
 (defn ui
   []
   [:div.container.is-fluid
    [:div.columns
     [:div.column
-     [:button.button {:on-click #(rf/dispatch [:init-game])} "(Re)start"]
+     [controls]
      [trick]
      [show-hand :south]
      [app-db]]]])

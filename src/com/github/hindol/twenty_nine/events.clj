@@ -1,6 +1,7 @@
 (ns com.github.hindol.twenty-nine.events
   (:require
    [clojure.core.async :as async]
+   [clojure.stacktrace :as st]
    [com.github.hindol.twenty-nine.db :as db]
    [com.github.hindol.twenty-nine.engine :as engine]
    [com.github.hindol.twenty-nine.ws :as ws]
@@ -20,7 +21,11 @@
               (async/go-loop []
                 (when-let [[dequeued-id :as dequeued] (async/<! event-queue)]
                   (if-let [handler (get @event-handlers dequeued-id)]
-                    (swap! db/app-db handler dequeued)
+                    (try
+                      (swap! db/app-db handler dequeued)
+                      (catch Exception e
+                        (println "Handler for event: " (pr-str dequeued) " threw an exception!")
+                        (st/print-stack-trace e)))
                     (println "No handler registered for event: " (pr-str dequeued-id)))
                   (recur)))))))
 

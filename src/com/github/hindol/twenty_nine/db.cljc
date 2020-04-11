@@ -8,12 +8,12 @@
 (def ranks
   [:7 :8 :queen :king :10 :ace :9 :jack])
 
-(def players
+(def sides
   [:north :west :south :east])
 
 (defn turns
   []
-  (take 7 (cycle players)))
+  (take 7 (cycle sides)))
 
 (def deck
   (for [s suits
@@ -30,7 +30,7 @@
 
 (defn deal-half
   []
-  (zipmap players (->> deck shuffle (partition 4) (map vec))))
+  (zipmap sides (->> deck shuffle (partition 4) (map vec))))
 
 (defn deal-remaining
   [])
@@ -50,7 +50,7 @@
 (defn round
   []
   {:hands  (deal)
-   :bidder (rand-nth players)
+   :bidder (rand-nth sides)
    :trump  {:suit    (rand-nth suits)
             :exposed false}
    :tricks {:current (trick {:leader :south})

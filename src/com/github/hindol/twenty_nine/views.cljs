@@ -29,7 +29,7 @@
 (defn trick
   []
   (let [{plays :plays} @(rf/subscribe [:trick])
-        columns        ["columns" "is-mobile" "is-centered" "is-variable" "is-3-desktop" "is-2-tablet" "is-1-mobile"]
+        columns        ["columns" "is-mobile" "is-centered" "is-variable" "is-1"]
         column         ["column" "is-1-desktop" "is-1-tablet" "is-3-mobile"]]
     [:div.columns
      [:div.column
@@ -43,13 +43,14 @@
 
 (defn cards
   [cs {:keys [on-click]}]
-  (let [columns ["columns" "is-mobile" "is-centered" "is-multiline" "is-variable" "is-3-desktop" "is-2-tablet" "is-1-mobile"]
+  (let [columns ["columns" "is-mobile" "is-centered" "is-multiline" "is-variable" "is-1"]
         column  ["column" "is-1-desktop" "is-1-tablet" "is-3-mobile"]]
     [:div {:class columns}
      (if (empty? cs)
-       [card {:suit :clubs
-              :rank :2} {:class column
-                         :style {:visibility "hidden"}}]
+       [:div {:class column}
+        [card {:suit :clubs
+               :rank :2} {:class column
+                          :style {:visibility "hidden"}}]]
        (map-indexed (fn [idx c]
                       ^{:key idx}
                       [:div {:class column}
@@ -61,21 +62,20 @@
   (let [hand @(rf/subscribe [:hand player])]
     [:div.columns
      [:div.column
-      [:div.card
-       [:div.card-content
-        [cards hand {:on-click #(rf/dispatch [:play player %])}]]]]]))
+      [cards hand {:on-click #(rf/dispatch [:play player %])}]]]))
+
+(defn controls
+  []
+  [:div.level
+   [:div.level-left
+    [:div.level-item
+     [:button.button {:on-click #(rf/dispatch [:init-game])} "New Game"]]]])
 
 (defn app-db
   []
   [:div.columns
    [:div.column
     [:pre (with-out-str (pp/pprint @(rf/subscribe [:app-db])))]]])
-
-(defn controls
-  []
-  [:div.level
-   [:div.level-item
-    [:button.button {:on-click #(rf/dispatch [:init-game])} "(Re)start"]]])
 
 (defn ui
   []

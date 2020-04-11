@@ -41,13 +41,29 @@
       [:div {:class columns}
        [:div {:class column} [card (:south plays)]]]]]))
 
+(defn cards
+  [cs {:keys [on-click]}]
+  (let [columns ["columns" "is-mobile" "is-centered" "is-multiline" "is-variable" "is-3-desktop" "is-2-tablet" "is-1-mobile"]
+        column  ["column" "is-1-desktop" "is-1-tablet" "is-3-mobile"]]
+    [:div {:class columns}
+     (if (empty? cs)
+       [card {:suit :clubs
+              :rank :2} {:class column
+                         :style {:visibility "hidden"}}]
+       (map-indexed (fn [idx c]
+                      ^{:key idx}
+                      [:div {:class column}
+                       [card c {:on-click #(on-click c)}]])
+                    cs))]))
+
 (defn show-hand
   [player]
-  (let [hand  @(rf/subscribe [:hand player])
-        cards (map (fn [c] [:div.column.is-1-desktop.is-1-tablet.is-3-mobile
-                            [card c {:on-click #(rf/dispatch [:play player c])}]])
-                   hand)]
-    (into [:div.columns.is-mobile.is-centered.is-multiline.is-variable.is-3-desktop.is-2-tablet.is-1-mobile] cards)))
+  (let [hand @(rf/subscribe [:hand player])]
+    [:div.columns
+     [:div.column
+      [:div.card
+       [:div.card-content
+        [cards hand {:on-click #(rf/dispatch [:play player %])}]]]]]))
 
 (defn app-db
   []

@@ -8,7 +8,10 @@
    [io.pedestal.http.route :as route]))
 
 (def ws-paths
-  {"/ws" {:on-connect (websockets/start-ws-connection ws/add-client)
+  {"/ws" {:on-connect (fn
+                        [ws-session]
+                        ((websockets/start-ws-connection ws/add-client) ws-session)
+                        (events/dispatch [:join-game {:ws-session ws-session}]))
           :on-text    (fn on-text
                         [ws-session message]
                         (events/dispatch ^{:ws-session ws-session} (edn/read-string message)))

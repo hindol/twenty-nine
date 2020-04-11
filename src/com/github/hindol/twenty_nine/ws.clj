@@ -1,7 +1,6 @@
 (ns com.github.hindol.twenty-nine.ws
   (:require
-   [clojure.core.async :as async]
-   [com.github.hindol.twenty-nine.db :as db])
+   [clojure.core.async :as async])
   (:import
    (org.eclipse.jetty.websocket.api Session
                                     WebSocketAdapter)))
@@ -47,7 +46,6 @@
                 (recur))))))
 
 (defn add-client
-  [ws-session send-ch]
+  [session send-ch]
   (start-heartbeat)
-  (async/put! send-ch (pr-str [:init-db @db/app-db]))
-  (swap! clients assoc ws-session send-ch))
+  (swap! clients assoc session send-ch))

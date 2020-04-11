@@ -4,9 +4,12 @@
    [clojure.stacktrace :as st]
    [com.github.hindol.twenty-nine.db :as db]
    [com.github.hindol.twenty-nine.engine :as engine]
+   [com.github.hindol.twenty-nine.game :as game]
    [com.github.hindol.twenty-nine.ws :as ws]
    [editscript.core :as edit]
-   [editscript.edit :as fmt]))
+   [editscript.edit :as fmt])
+  (:import
+   (org.eclipse.jetty.websocket.api Session)))
 
 (def event-handlers (atom {}))
 
@@ -45,11 +48,21 @@
    db))
 
 (on-event
+ :join-game
+ (fn [db [_ {:keys [^Session ws-session]}]]
+   (let [sides  (->> (:players db) (filter #(-> % val (= :machine))))
+         side   (key (rand-nth sides))
+         new-db (assoc-in db [:players side] (.. ws-session getRemoteAddress getAddress getHostAddress))]
+     (prn (game/view-as new-db side))
+     (ws/broadcast! [:init-db new-db])
+     new-db)))
+
+(on-event
  :init-game
- (fn [_ _]
-   (let [game (db/game)]
-     (ws/broadcast! [:init-db game])
-     game)))
+ (fn [db _]
+   (let [new-db (assoc db :rounds (db/game))]
+     (ws/broadcast! [:init-db new-db])
+     new-db)))
 
 (on-event
  :change-turn

@@ -58,25 +58,13 @@
 
 (defn game
   []
-  {:version 0
-   :players {:north :machine
-             :west  :machine
-             :south :human
-             :east  :machine}
-   :rounds  {:current (round)
-             :past    []}})
+  {:current (round)
+   :past    []})
 
 ;; In the backend, this is the main game state.
 ;; In the frontend, this is the last synced version from the server.
 (def app-db
-  (atom nil))
-
-(defn view-as
-  [db player]
-  (let [hands (get-in db [:rounds :current :hands])
-        hand  (get hands player)]
-    (-> db
-        (update-in [:rounds :current]
-                   #(-> %
-                        (dissoc :hands)
-                        (assoc :hand hand))))))
+  (atom {:players {:north :machine
+                   :west  :machine
+                   :south :machine
+                   :east  :machine}}))

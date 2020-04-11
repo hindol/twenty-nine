@@ -49,8 +49,7 @@
      (if (empty? cs)
        [:div {:class column}
         [card {:suit :clubs
-               :rank :2} {:class column
-                          :style {:visibility "hidden"}}]]
+               :rank :2} {:style {:visibility :hidden}}]]
        (map-indexed (fn [idx c]
                       ^{:key idx}
                       [:div {:class column}
@@ -79,10 +78,11 @@
 
 (defn ui
   []
-  [:div.container.is-fluid
-   [:div.columns
-    [:div.column
-     [controls]
-     [trick]
-     [show-hand :south]
-     [app-db]]]])
+  [:section.section
+   [:div.container.is-fluid
+    [:div.columns
+     [:div.column
+      [controls]
+      [trick]
+      [show-hand :south]
+      [app-db]]]]])

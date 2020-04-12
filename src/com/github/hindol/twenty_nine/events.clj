@@ -50,11 +50,17 @@
 (on-event
  :join-game
  (fn [db [_ {:keys [^Session ws-session]}]]
-   (let [sides  (->> (:players db) (filter #(-> % val (= :machine))))
-         side   (key (rand-nth sides))
-         new-db (assoc-in db [:players side] (.. ws-session getRemoteAddress getAddress getHostAddress))]
-     (prn (game/view-as new-db side))
-     (ws/broadcast! [:init-db new-db])
+   (let [{:keys [uuid side]} (game/join {:ws-session ws-session})
+         new-db              (assoc-in db [:players side] (str uuid))]
+     (ws/broadcast! [:init-db (game/view-as new-db side)])
+     new-db)))
+
+(on-event
+ :leave-game
+ (fn [db [_ {:keys [^Session ws-session]}]]
+   (let [side   (game/leave {:ws-session ws-session})
+         new-db (assoc-in db [:players side] :machine)]
+     (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
      new-db)))
 
 (on-event

@@ -23,7 +23,7 @@
                         (println "Socket error - " e))
           :on-close   (fn on-close
                         [ws-session _code _reason]
-                        (println "Connection closed.")
+                        (events/dispatch [:leave-game {:ws-session ws-session}])
                         (swap! ws/clients dissoc ws-session))}})
 
 (def routes

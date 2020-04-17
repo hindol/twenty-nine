@@ -7,14 +7,19 @@
 
 (def ^:private schema
   {:uuid       {:db/unique :db.unique/identity}
-   :side       {:db/unique :db.unique/value}
-   :ws-session {:db/type :db.type/bytes}})
+   :side       {:db/unique :db.unique/identity}
+   :ws-session {:db/unique :db.unique/identity}})
 
-(def ^:private ds (d/create-conn schema))
+(defonce ^:private ds (d/create-conn schema))
 
 (defn uuid
   []
   (UUID/randomUUID))
+
+(defn side
+  [ws-session]
+  (let [s (:side (d/entity @ds [:ws-session ws-session]))]
+    s))
 
 (defn join
   [{:keys [ws-session]}]
@@ -31,17 +36,12 @@
 
 (defn leave
   [{:keys [ws-session]}]
-  (let [side (d/q '[:find ?s
-                    :in ?session
-                    :where
-                    [?e :ws-session ?session]
-                    [?e :side ?s]]
-                  @ds ws-session)]
-    (d/transact! ds [[:db.fn/retractEntity [:ws-session ws-session]]])
-    side))
+  (d/transact! ds [[:db.fn/retractEntity [:ws-session ws-session]]])
+  (side ws-session))
 
 (defn view-as
   [db player]
   (-> db
       (update-in [:rounds :current :hands]
-                 #(-> % (select-keys [player])))))
+                 #(-> % (select-keys [player])))
+      (assoc :viewing-as player)))

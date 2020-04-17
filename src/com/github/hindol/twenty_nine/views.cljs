@@ -84,5 +84,5 @@
      [:div.column
       [controls]
       [trick]
-      [show-hand :south]
+      [show-hand :north]
       [app-db]]]]])

@@ -28,6 +28,9 @@
                       (swap! db/app-db handler dequeued)
                       (catch Exception e
                         (println "Handler for event: " (pr-str dequeued) " threw an exception!")
+                        (st/print-stack-trace e))
+                      (catch AssertionError e
+                        (println "Handler for event: " (pr-str dequeued) " raised an assertion error!")
                         (st/print-stack-trace e)))
                     (println "No handler registered for event: " (pr-str dequeued-id)))
                   (recur)))))))
@@ -52,6 +55,7 @@
  (fn [db [_ {:keys [^Session ws-session]}]]
    (let [{:keys [uuid side]} (game/join {:ws-session ws-session})
          new-db              (assoc-in db [:players side] (str uuid))]
+     (prn :join-game ws-session)
      (ws/broadcast! [:init-db (game/view-as new-db side)])
      new-db)))
 
@@ -60,14 +64,16 @@
  (fn [db [_ {:keys [^Session ws-session]}]]
    (let [side   (game/leave {:ws-session ws-session})
          new-db (assoc-in db [:players side] :machine)]
+     (prn :leave-game ws-session)
      (ws/broadcast! [:apply-patch (fmt/get-edits (edit/diff db new-db))])
      new-db)))
 
 (on-event
  :init-game
- (fn [db _]
-   (let [new-db (assoc db :rounds (db/game))]
-     (ws/broadcast! [:init-db new-db])
+ (fn [db event]
+   (let [{:keys [ws-session]} (meta event)
+         new-db               (assoc db :rounds (db/game))]
+     (ws/broadcast! [:init-db (game/view-as new-db (game/side ws-session))])
      new-db)))
 
 (on-event

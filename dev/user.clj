@@ -1,5 +1,6 @@
 (ns dev.user
   (:require
+   [clojure.tools.namespace.repl :as repl]
    [com.github.hindol.twenty-nine :as core]
    [io.pedestal.http :as http]))
 
@@ -28,10 +29,13 @@
     (http/stop @server)
     (reset! server nil)))
 
+(defn refresh
+  []
+  (repl/refresh))
+
 (defn reset
   []
-  (require 'com.github.hindol.twenty-nine :reload-all)
   (stop-dev)
   (start-dev))
 
-(reset)
+(refresh)

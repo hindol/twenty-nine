@@ -14,7 +14,8 @@
                                       re-frame                    {:mvn/version "0.12.0"}
                                       reagent                     {:mvn/version "0.10.0"}}}
            :compile     {:main-opts ["-e" "(compile,'com.github.hindol.twenty-nine)"]}
-           :dev         {:extra-paths ["dev" "classes"]}
+           :dev         {:extra-paths ["dev" "classes"]
+                         :extra-deps  {org.clojure/tools.namespace {:mvn/version "1.0.0"}}}
            :test        {:extra-paths ["test"]
                          :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}
            :runner      {:extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"

@@ -63,7 +63,7 @@
 
 ;; In the backend, this is the main game state.
 ;; In the frontend, this is the last synced version from the server.
-(def app-db
+(defonce app-db
   (atom {:players {:north :machine
                    :west  :machine
                    :south :machine

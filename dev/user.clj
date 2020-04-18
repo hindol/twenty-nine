@@ -1,41 +1,52 @@
-(ns dev.user
+(ns user
   (:require
+   [clojure.java.classpath :as cp]
    [clojure.tools.namespace.repl :as repl]
-   [com.github.hindol.twenty-nine :as core]
-   [io.pedestal.http :as http]))
+   [com.stuartsierra.component :as c]
+   [io.pedestal.http :as http]
+   [twenty-nine.backend.server :as server]
+   [twenty-nine.backend.system :as system]))
 
-(defonce server (atom nil))
-
-(defn start-dev
+(defn create-dev-service-map
   []
-  (when-not @server
-    (reset! server (-> core/service
-                       (merge {:env                  :dev
-                               ::http/join?           false
-                               ::http/routes          #(deref #'core/routes)
-                               ::http/resource-path   "/dev"
-                               ::http/allowed-origins {:creds           true
-                                                       :allowed-origins (constantly true)}
-                               ::http/host            "0.0.0.0"
-                               ::http/port            8080})
-                       http/default-interceptors
-                       http/dev-interceptors
-                       http/create-server))
-    (http/start @server)))
+  (merge (server/create-service-map)
+         {:env                  :dev
+          ::http/join?           false
+          ::http/resource-path   "/dev"
+          ::http/allowed-origins {:creds           true
+                                  :allowed-origins (constantly true)}
+          ::http/secure-headers  {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: ws:;"}
+          ::http/host            "0.0.0.0"
+          ::http/port            8080}))
 
-(defn stop-dev
-  []
-  (when @server
-    (http/stop @server)
-    (reset! server nil)))
+(defonce system
+  (atom nil))
 
-(defn refresh
+(defn init
   []
-  (repl/refresh))
+  (reset! system (system/create-system {:service-map (create-dev-service-map)})))
+
+(defn start
+  []
+  (swap! system c/start))
+
+(defn stop
+  []
+  (when @system
+    (swap! system c/stop)))
+
+(defn go
+  []
+  (init)
+  (start))
 
 (defn reset
   []
-  (stop-dev)
-  (start-dev))
+  (stop)
+  (repl/refresh :after 'user/go))
 
-(refresh)
+(comment
+  (cp/classpath)
+  (binding [*compile-files* true]
+    (require 'user :reload-all))
+  (reset))

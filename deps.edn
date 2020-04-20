@@ -2,7 +2,7 @@
  :deps    {juji/editscript {:mvn/version "0.4.2"}}
 
  :aliases {:clj         {:extra-deps {com.stuartsierra/component   {:mvn/version "1.0.0"}
-                                      io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+                                      io.pedestal/pedestal.service {:local/root "../pedestal/service"}
                                       io.pedestal/pedestal.route   {:mvn/version "0.5.7"}
                                       io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
                                       org.clojure/clojure          {:mvn/version "1.10.1"}
@@ -22,7 +22,7 @@
            :dev         {:extra-paths ["dev" "classes"]
                          :extra-deps  {org.clojure/java.classpath  {:mvn/version "1.0.0"}
                                        org.clojure/tools.namespace {:mvn/version "1.0.0"}}
-                         :jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]}
+                         :jvm-opts    ["-XX:-OmitStackTraceInFastThrow" "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"]}
 
            :test        {:extra-paths ["test"]
                          :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}

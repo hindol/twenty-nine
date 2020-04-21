@@ -1,0 +1,1 @@
+{:lint-as {twenty-nine.common.utils/when-let* clojure.core/let}}

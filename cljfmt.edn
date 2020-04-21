@@ -1,5 +1,6 @@
-{:remove-surrounding-whitespace? true
- :remove-trailing-whitespace? true
+{:remove-surrounding-whitespace?  true
+ :remove-trailing-whitespace?     true
  :remove-consecutive-blank-lines? true
- :insert-missing-whitespace? true
- :align-associative? true}
+ :insert-missing-whitespace?      true
+ :align-associative?              true
+ :indents                         {when-let* [[:block 1]]}}

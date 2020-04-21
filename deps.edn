@@ -22,7 +22,8 @@
            :dev         {:extra-paths ["dev" "classes"]
                          :extra-deps  {org.clojure/java.classpath  {:mvn/version "1.0.0"}
                                        org.clojure/tools.namespace {:mvn/version "1.0.0"}}
-                         :jvm-opts    ["-XX:-OmitStackTraceInFastThrow" "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"]}
+                         :jvm-opts    ["-XX:-OmitStackTraceInFastThrow"
+                                       "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"]}
 
            :test        {:extra-paths ["test"]
                          :extra-deps  {org.clojure/test.check {:mvn/version "0.10.0"}}}

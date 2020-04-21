@@ -1,23 +1,25 @@
 (ns twenty-nine.backend.ws
   (:require
+   [clojure.core.async :as a]
    [clojure.pprint :as pp]
-   [com.stuartsierra.component :as c])
+   [com.stuartsierra.component :as c]
+   [io.pedestal.http.jetty.websockets :as ws])
   (:import
-   (org.eclipse.jetty.websocket.servlet ServletUpgradeRequest
-                                        ServletUpgradeResponse)))
+   (org.eclipse.jetty.websocket.api Session
+                                    WebSocketConnectionListener
+                                    WebSocketListener)))
 
-(defn connection-listener
-  [^ServletUpgradeRequest request ^ServletUpgradeResponse response fn-map]
-  (pp/pprint (bean request)))
+(defn fn-map
+  [{:keys [ws-clients]}]
+  {:on-connect (ws/start-ws-connection
+                (fn [session send-ch]
+                  (swap! ws-clients assoc session send-ch)))
+   :on-text    (fn [text])
+   :on-binary  #(pp/pprint %&)
+   :on-error   #(pp/pprint %&)
+   :on-close   #(pp/pprint %&)})
 
-(def fn-map
-  {:on-connect #(prn %&)
-   :on-text    #(prn %&)
-   :on-binary  #(prn %&)
-   :on-error   #(prn %&)
-   :on-close   #(prn %&)})
-
-(defrecord WebSocketServer [ws-server service-map]
+(defrecord WebSocketServer [ws-server service-map access-tokens]
   c/Lifecycle
   (start [this]
     (assoc this :ws-server {:ws-clients (atom {})
@@ -25,7 +27,8 @@
 
   (stop [this]
     (let [ws-clients (:ws-clients ws-server)]
-      (reset! ws-clients nil))))
+      (doseq [[_ send-ch] @ws-clients]
+        (a/close! send-ch)))))
 
 (defn create-websocket-server
   []

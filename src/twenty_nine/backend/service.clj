@@ -7,17 +7,23 @@
    [twenty-nine.common.utils :as u]))
 
 (def ^:private ws-paths
-  {"/ws" twenty-nine.backend.ws/fn-map})
+  {"/ws" {}})
 
 (defmulti create-service-map :env)
 
 (defmethod create-service-map :prod
-  [{:keys [routes-fn]}]
+  [{:keys [routes-fn ws-server access-tokens]}]
   (-> {:env                    :prod
+       ::http/type              :jetty
        ::http/routes            (routes-fn)
        ::http/resource-path     "/public"
-       ::http/type              :jetty
-       ::http/container-options {:context-configurator #(ws/add-ws-endpoints % ws-paths)}
+       ::http/mime-types        {nil "text/html"} ;; No extension in URL => assume HTML
+       ::http/container-options {:context-configurator #(ws/add-ws-endpoints
+                                                         %
+                                                         ws-paths
+                                                         {:listener-fn (twenty-nine.backend.ws/create-connection-listener
+                                                                        {:access-tokens access-tokens
+                                                                         :ws-clients    (:ws-clients ws-server)})})}
        ::http/secure-headers    {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: wss:;"}}
       http/default-interceptors
       (update ::http/interceptors (fn prefer-fast-resource [interceptors]
@@ -33,7 +39,6 @@
               ::http/routes          routes-fn
               ::http/join?           false
               ::http/resource-path   "/dev"
-              ::http/mime-types      {nil "text/html"} ;; No extension in URL => assume HTML
               ::http/allowed-origins {:creds           true
                                       :allowed-origins (constantly true)}
               ::http/secure-headers  {:content-security-policy-settings "object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: ws:;"}})

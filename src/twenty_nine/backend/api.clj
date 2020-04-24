@@ -17,7 +17,8 @@
     (swap! access-tokens assoc token (:remote-addr request))
     {:status  200
      :body    token
-     :cookies {:access-token token}}))
+     :cookies {:access-token {:value token
+                              :path  "/"}}}))
 
 (defn authorized?
   [access-tokens token {:keys [remote-addr]}]
